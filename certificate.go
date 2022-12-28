@@ -43,6 +43,7 @@ type poolRegistration struct {
 	Operator      PoolKeyHash
 	VrfKeyHash    Hash32
 	Pledge        Coin
+	PoolCost      Coin
 	Margin        UnitInterval
 	RewardAccount Address
 	Owners        []AddrKeyHash
