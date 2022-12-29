@@ -221,6 +221,7 @@ func (c *Certificate) UnmarshalCBOR(data []byte) error {
 		c.Operator = cert.Operator
 		c.VrfKeyHash = cert.VrfKeyHash
 		c.Pledge = cert.Pledge
+		c.PoolCost = cert.PoolCost
 		c.Margin = cert.Margin
 		c.RewardAccount = cert.RewardAccount
 		c.Owners = cert.Owners
