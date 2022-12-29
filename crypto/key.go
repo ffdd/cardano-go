@@ -161,7 +161,7 @@ func (prv PrvKey) String() string {
 
 func (prv *PrvKey) Sign(message []byte) []byte {
 	if len(*prv) == 32 {
-		pk := ed25519.NewKeyFromSeed(*prv)[:32]
+		pk := ed25519.NewKeyFromSeed(*prv)
 		return ed25519.Sign(pk, message)
 	}
 
