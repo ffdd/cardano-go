@@ -78,6 +78,7 @@ type Certificate struct {
 	// Pool related fields
 	Operator      PoolKeyHash
 	Pledge        Coin
+	PoolCost      Coin
 	Margin        UnitInterval
 	RewardAccount Address
 	Owners        []AddrKeyHash
@@ -116,6 +117,7 @@ func (c *Certificate) MarshalCBOR() ([]byte, error) {
 			Operator:      c.Operator,
 			VrfKeyHash:    c.VrfKeyHash,
 			Pledge:        c.Pledge,
+			PoolCost:      c.PoolCost,
 			Margin:        c.Margin,
 			RewardAccount: c.RewardAccount,
 			Owners:        c.Owners,
