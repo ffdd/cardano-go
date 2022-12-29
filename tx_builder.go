@@ -95,6 +95,8 @@ func (tb *TxBuilder) totalDeposits() Coin {
 		for _, cert := range certs {
 			if cert.Type == StakeRegistration {
 				deposit += tb.protocol.KeyDeposit
+			} else if cert.Type == PoolRegistration {
+				deposit += tb.protocol.PoolDeposit
 			}
 		}
 	}
