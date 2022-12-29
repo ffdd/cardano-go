@@ -134,6 +134,10 @@ func NewPrvKey(bech string) (PrvKey, error) {
 
 // XPubKey returns the XPubKey derived from the private key.
 func (prv PrvKey) PubKey() PubKey {
+	if len(prv) == 32 {
+		return PubKey(ed25519.NewKeyFromSeed(prv)[32:])
+	}
+
 	vk := make([]byte, 32)
 	pk := ed25519.PublicKeyFrom(ed25519.ExtendedPrivateKey(prv[:64]))
 
