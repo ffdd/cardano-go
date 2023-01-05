@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestNewOperationalCertificate(t *testing.T) {
+func TestOperationalCertificate(t *testing.T) {
 	kesVKey := "69ffc95dc8f843d79033f86eb81e61785517e56e8e9b3854b43c5fc567440023"
 	kesBytes, err := hex.DecodeString(kesVKey)
 	assert.NoError(t, err)
@@ -48,4 +48,23 @@ func TestNewOperationalCertificate(t *testing.T) {
 	assert.NoError(t, errCert)
 
 	assert.Equal(t, opCert, newOpCert)
+}
+
+func TestNewOperationalCertificate(t *testing.T) {
+	kesVKey := "69ffc95dc8f843d79033f86eb81e61785517e56e8e9b3854b43c5fc567440023"
+	kesBytes, err := hex.DecodeString(kesVKey)
+	assert.NoError(t, err)
+
+	coldSKey := "288fe53f497bd3e6e9f1a1849d75fcf164b77c5a41786d1e2c3f9e001d788c47"
+	coldSKeyBytes, err := hex.DecodeString(coldSKey)
+	assert.NoError(t, err)
+
+	opCert, err := NewOperationalCertificate(kesBytes, 6, 1, coldSKeyBytes)
+	assert.NoError(t, err)
+
+	opCertCborHexBytes, err := opCert.MarshalCBOR()
+	assert.NoError(t, err)
+
+	opCertCborHex := hex.EncodeToString(opCertCborHexBytes)
+	assert.Equal(t, "8284582069ffc95dc8f843d79033f86eb81e61785517e56e8e9b3854b43c5fc567440023060158404ea5a83a14ccd15955dbee08c500922bded3624752439bd33dc1f9500e40a4cba63bd6a9dba3770b91a47659da5385c15b7f9d0f75a3fe6f1a150f15a041f0035820c5749cc4f1c635f025090816af6eb6043659785e837abbd1f154444fc5033b58", opCertCborHex)
 }

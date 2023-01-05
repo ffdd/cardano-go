@@ -1,6 +1,7 @@
 package cardano
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	"github.com/echovl/cardano-go/crypto"
@@ -378,6 +379,24 @@ type OperationalCertificate struct {
 	KesPeriod uint
 	Signature []byte
 	ColdVKey  []byte
+}
+
+func NewOperationalCertificate(kesVKey []byte, counter uint, kesPeriod uint, coldSKey crypto.PrvKey) (OperationalCertificate, error) {
+	signPayload := hex.EncodeToString(kesVKey) + fmt.Sprintf("%0*d", 16, counter) + fmt.Sprintf("%0*d", 16, kesPeriod)
+	signPayloadBytes, err := hex.DecodeString(signPayload)
+	if err != nil {
+		return OperationalCertificate{}, err
+	}
+	signatureBytes := coldSKey.Sign(signPayloadBytes)
+
+	opCert := OperationalCertificate{
+		KesVKey:   kesVKey,
+		Counter:   counter,
+		KesPeriod: kesPeriod,
+		Signature: signatureBytes,
+		ColdVKey:  coldSKey.PubKey(),
+	}
+	return opCert, nil
 }
 
 func (oc *OperationalCertificate) MarshalCBOR() ([]byte, error) {
