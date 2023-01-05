@@ -356,3 +356,53 @@ func (r *Relay) UnmarshalCBOR(data []byte) error {
 
 	return nil
 }
+
+type OCertBody struct {
+	_         struct{} `cbor:",toarray"`
+	KesVKey   []byte
+	Counter   uint
+	KesPeriod uint
+	Signature []byte
+}
+
+type operationalCertificate struct {
+	_        struct{} `cbor:",toarray"`
+	Body     OCertBody
+	ColdVKey []byte
+}
+
+// OperationalCertificate is a Cardano operational certificate
+type OperationalCertificate struct {
+	KesVKey   []byte
+	Counter   uint
+	KesPeriod uint
+	Signature []byte
+	ColdVKey  []byte
+}
+
+func (oc *OperationalCertificate) MarshalCBOR() ([]byte, error) {
+	var cert interface{}
+	cert = operationalCertificate{
+		Body: OCertBody{
+			KesVKey:   oc.KesVKey,
+			Counter:   oc.Counter,
+			KesPeriod: oc.KesPeriod,
+			Signature: oc.Signature,
+		},
+		ColdVKey: oc.ColdVKey,
+	}
+	return cborEnc.Marshal(cert)
+}
+
+func (oc *OperationalCertificate) UnmarshalCBOR(data []byte) error {
+	ocl := &operationalCertificate{}
+	if err := cborDec.Unmarshal(data, ocl); err != nil {
+		return err
+	}
+	oc.KesVKey = ocl.Body.KesVKey
+	oc.Counter = ocl.Body.Counter
+	oc.KesPeriod = ocl.Body.KesPeriod
+	oc.Signature = ocl.Body.Signature
+	oc.ColdVKey = ocl.ColdVKey
+	return nil
+}
