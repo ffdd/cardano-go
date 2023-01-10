@@ -13,39 +13,47 @@ const (
 )
 
 type KesKey struct {
-	PubKey PubKey
-	PrvKey PrvKey
+	pubKey PubKey
+	prvKey PrvKey
 }
 
-func NewKesKey(masterSeed []byte) (KesKey, error) {
-	if len(masterSeed) != 32 {
+func NewKesKey(seed []byte) (KesKey, error) {
+	if len(seed) != 32 {
 		return KesKey{}, fmt.Errorf("seed has to be 32 bytes")
 	}
 
-	prvKey, pubKey, err := kesKeygen(masterSeed, 6) // A 2^6 period KES
+	prvKey, pubKey, err := kesKeygen(seed, 6) // A 2^6 period KES
 	if err != nil {
 		return KesKey{}, err
 	}
-	return KesKey{PubKey: pubKey, PrvKey: prvKey}, nil
+	return KesKey{pubKey: pubKey, prvKey: prvKey}, nil
+}
+
+func (k KesKey) PrvKey() PrvKey {
+	return k.prvKey
+}
+
+func (k KesKey) PubKey() PubKey {
+	return k.pubKey
 }
 
 func kesKeyLen(depth int) int {
 	return SecretKeyLength + depth*32 + depth*(PublicKeyLength*2)
 }
 
-func kesKeygen(masterSeed []byte, depth int) (PrvKey, PubKey, error) {
+func kesKeygen(seed []byte, depth int) (PrvKey, PubKey, error) {
 	if depth > 7 {
 		return nil, nil, fmt.Errorf("Sum7KesKey is maximum")
 	}
 	if depth == 0 {
-		pkey := ed25519.NewKeyFromSeed(masterSeed)
+		pkey := ed25519.NewKeyFromSeed(seed)
 		_, pubKey := pkey[:32], pkey[32:]
 		return PrvKey(pkey[:32]), PubKey(pubKey), nil
 	}
 
 	data := make([]byte, kesKeyLen(depth)+4)
 
-	pk, err := kesKeygenSlice(data, masterSeed, depth)
+	pk, err := kesKeygenSlice(data, seed, depth)
 	if err != nil {
 		return nil, nil, err
 	}
