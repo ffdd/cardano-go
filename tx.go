@@ -102,7 +102,7 @@ func (t TxInput) String() string {
 
 // TxInput is the transaction output.
 type TxOutput struct {
-	_       struct{} `cbor:",toarray"`
+	_       struct{} `cbor:",toarray"` // TODO: look into this being disabled and used as map in CLI
 	Address Address
 	Amount  *Value
 }
@@ -116,6 +116,8 @@ func (t TxOutput) String() string {
 	return fmt.Sprintf("{Address: %v, Amount: %v}", t.Address, t.Amount)
 }
 
+type Withdrawals map[[29]byte]Coin
+
 type TxBody struct {
 	Inputs  []*TxInput  `cbor:"0,keyasint"`
 	Outputs []*TxOutput `cbor:"1,keyasint"`
@@ -124,7 +126,7 @@ type TxBody struct {
 	// Optionals
 	TTL                   Uint64        `cbor:"3,keyasint,omitempty"`
 	Certificates          []Certificate `cbor:"4,keyasint,omitempty"`
-	Withdrawals           interface{}   `cbor:"5,keyasint,omitempty"` // unsupported
+	Withdrawals           Withdrawals   `cbor:"5,keyasint,omitempty"` // unsupported
 	Update                interface{}   `cbor:"6,keyasint,omitempty"` // unsupported
 	AuxiliaryDataHash     *Hash32       `cbor:"7,keyasint,omitempty"`
 	ValidityIntervalStart Uint64        `cbor:"8,keyasint,omitempty"`
