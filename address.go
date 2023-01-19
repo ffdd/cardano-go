@@ -9,39 +9,46 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-type AddressType byte
+type ShelleyAddressType byte
 
 // refer to pg.120 in https://hydra.iohk.io/build/7918420/download/1/ledger-spec.pdf
 const (
-	Base       AddressType = 0x00
-	Ptr        AddressType = 0x04
-	Enterprise AddressType = 0x06
-	Stake      AddressType = 0x0E
+	Base       ShelleyAddressType = 0x00
+	Ptr        ShelleyAddressType = 0x04
+	Enterprise ShelleyAddressType = 0x06
+	Stake      ShelleyAddressType = 0x0E
 )
 
-// Address represents a Cardano address.
-type Address struct {
+type Address interface {
+	Bech32() string
+	MarshalCBOR() ([]byte, error)
+	UnmarshalCBOR(data []byte) error
+	Bytes() []byte
+}
+
+// ShelleyAddress represents a Cardano address.
+type ShelleyAddress struct {
 	Network Network
-	Type    AddressType
+	Type    ShelleyAddressType
 	Pointer Pointer
 
 	Payment StakeCredential
 	Stake   StakeCredential
 }
 
-// NewAddress creates an Address from a bech32 encoded string.
-func NewAddress(bech string) (Address, error) {
+// NewShelleyAddress creates an ShelleyAddress from a bech32 encoded string.
+func NewAddress(bech string) (ShelleyAddress, error) {
 	_, bytes, err := bech32.DecodeToBase256(bech)
 	if err != nil {
-		return Address{}, err
+		return ShelleyAddress{}, err
 	}
 	return NewAddressFromBytes(bytes)
 }
 
-// NewAddressFromBytes creates an Address from bytes.
-func NewAddressFromBytes(bytes []byte) (Address, error) {
-	addr := Address{
-		Type:    AddressType(bytes[0] >> 4),
+// NewAddressFromBytes creates an ShelleyAddress from bytes.
+func NewAddressFromBytes(bytes []byte) (ShelleyAddress, error) {
+	addr := ShelleyAddress{
+		Type:    ShelleyAddressType(bytes[0] >> 4),
 		Network: Network(bytes[0] & 0x01),
 	}
 
@@ -184,13 +191,13 @@ func NewAddressFromBytes(bytes []byte) (Address, error) {
 }
 
 // MarshalCBOR implements cbor.Marshaler.
-func (addr *Address) MarshalCBOR() ([]byte, error) {
+func (addr *ShelleyAddress) MarshalCBOR() ([]byte, error) {
 	em, _ := cbor.CanonicalEncOptions().EncMode()
 	return em.Marshal(addr.Bytes())
 }
 
 // UnmarshalCBOR implements cbor.Unmarshaler.
-func (addr *Address) UnmarshalCBOR(data []byte) error {
+func (addr *ShelleyAddress) UnmarshalCBOR(data []byte) error {
 	bytes := []byte{}
 	if err := cborDec.Unmarshal(data, &bytes); err != nil {
 		return nil
@@ -209,8 +216,8 @@ func (addr *Address) UnmarshalCBOR(data []byte) error {
 	return nil
 }
 
-// Bytes returns the CBOR encoding of the Address as bytes.
-func (addr *Address) Bytes() []byte {
+// Bytes returns the CBOR encoding of the ShelleyAddress as bytes.
+func (addr *ShelleyAddress) Bytes() []byte {
 	var networkByte uint8
 	switch addr.Network {
 	case Testnet, Preprod:
@@ -238,8 +245,8 @@ func (addr *Address) Bytes() []byte {
 	return addrBytes
 }
 
-// Bech32 returns the Address encoded as bech32.
-func (addr *Address) Bech32() string {
+// Bech32 returns the ShelleyAddress encoded as bech32.
+func (addr *ShelleyAddress) Bech32() string {
 	addrStr, err := bech32.EncodeFromBase256(getHrp(addr.Network, addr.Type), addr.Bytes())
 	if err != nil {
 		panic(err)
@@ -247,13 +254,13 @@ func (addr *Address) Bech32() string {
 	return addrStr
 }
 
-// String returns the Address encoded as bech32.
-func (addr Address) String() string {
+// String returns the ShelleyAddress encoded as bech32.
+func (addr ShelleyAddress) String() string {
 	return addr.Bech32()
 }
 
-// NewBaseAddress returns a new Base Address.
-func NewBaseAddress(network Network, payment StakeCredential, stake StakeCredential) (Address, error) {
+// NewBaseShelleyAddress returns a new Base Address.
+func NewBaseAddress(network Network, payment StakeCredential, stake StakeCredential) (ShelleyAddress, error) {
 	addrType := Base
 	if payment.Type == ScriptCredential && stake.Type == KeyCredential {
 		addrType = Base + 1
@@ -262,7 +269,7 @@ func NewBaseAddress(network Network, payment StakeCredential, stake StakeCredent
 	} else if payment.Type == ScriptCredential && stake.Type == ScriptCredential {
 		addrType = Base + 3
 	}
-	return Address{Type: addrType, Network: network, Payment: payment, Stake: stake}, nil
+	return ShelleyAddress{Type: addrType, Network: network, Payment: payment, Stake: stake}, nil
 }
 
 // Pointer is the location of the Stake Registration Certificate in the blockchain.
@@ -272,31 +279,31 @@ type Pointer struct {
 	CertIndex uint64
 }
 
-// NewPointerAddress returns a new Pointer Address.
-func NewPointerAddress(network Network, payment StakeCredential, ptr Pointer) (Address, error) {
+// NewPointerShelleyAddress returns a new Pointer Address.
+func NewPointerAddress(network Network, payment StakeCredential, ptr Pointer) (ShelleyAddress, error) {
 	addrType := Ptr
 	if payment.Type == ScriptCredential {
 		addrType = Ptr + 1
 	}
-	return Address{Type: addrType, Network: network, Payment: payment, Pointer: ptr}, nil
+	return ShelleyAddress{Type: addrType, Network: network, Payment: payment, Pointer: ptr}, nil
 }
 
-// NewEnterpriseAddress returns a new Enterprise Address.
-func NewEnterpriseAddress(network Network, payment StakeCredential) (Address, error) {
+// NewEnterpriseShelleyAddress returns a new Enterprise Address.
+func NewEnterpriseAddress(network Network, payment StakeCredential) (ShelleyAddress, error) {
 	addrType := Enterprise
 	if payment.Type == ScriptCredential {
 		addrType = Enterprise + 1
 	}
-	return Address{Type: addrType, Network: network, Payment: payment}, nil
+	return ShelleyAddress{Type: addrType, Network: network, Payment: payment}, nil
 }
 
-// NewStakeAddress returns a new Stake Address.
-func NewStakeAddress(network Network, stake StakeCredential) (Address, error) {
+// NewStakeShelleyAddress returns a new Stake Address.
+func NewStakeAddress(network Network, stake StakeCredential) (ShelleyAddress, error) {
 	addrType := Stake
 	if stake.Type == ScriptCredential {
 		addrType = Stake + 1
 	}
-	return Address{Type: addrType, Network: network, Stake: stake}, nil
+	return ShelleyAddress{Type: addrType, Network: network, Stake: stake}, nil
 }
 
 func decodeFromNat(data []byte) (uint64, uint, error) {
@@ -345,7 +352,7 @@ func Blake224Hash(b []byte) ([]byte, error) {
 	return hash.Sum(nil), err
 }
 
-func getHrp(network Network, addrType AddressType) string {
+func getHrp(network Network, addrType ShelleyAddressType) string {
 	hrp := "addr"
 	if addrType == Stake || addrType == Stake+1 {
 		hrp = "stake"

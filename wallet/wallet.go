@@ -127,7 +127,7 @@ func (w *Wallet) findUtxos() ([]cardano.UTxO, error) {
 	}
 	walletUtxos := []cardano.UTxO{}
 	for _, addr := range addrs {
-		addrUtxos, err := w.node.UTxOs(addr)
+		addrUtxos, err := w.node.UTxOs(&addr)
 		if err != nil {
 			return nil, err
 		}
@@ -137,20 +137,20 @@ func (w *Wallet) findUtxos() ([]cardano.UTxO, error) {
 }
 
 // AddAddress generates a new payment address and adds it to the wallet.
-func (w *Wallet) AddAddress() (cardano.Address, error) {
+func (w *Wallet) AddAddress() (cardano.ShelleyAddress, error) {
 	index := uint32(len(w.addrKeys))
 	newKey := w.rootKey.Derive(index)
 	w.addrKeys = append(w.addrKeys, newKey)
 	payment, err := cardano.NewKeyCredential(newKey.PubKey())
 	if err != nil {
-		return cardano.Address{}, err
+		return cardano.ShelleyAddress{}, err
 	}
 	return cardano.NewEnterpriseAddress(w.network, payment)
 }
 
 // BaseAddresses returns all base addresses.
-func (w *Wallet) BaseAddresses() ([]cardano.Address, error) {
-	addresses := make([]cardano.Address, len(w.addrKeys))
+func (w *Wallet) BaseAddresses() ([]cardano.ShelleyAddress, error) {
+	addresses := make([]cardano.ShelleyAddress, len(w.addrKeys))
 	for i, key := range w.addrKeys {
 		payment, err := cardano.NewKeyCredential(key.PubKey())
 		if err != nil {
@@ -170,8 +170,8 @@ func (w *Wallet) BaseAddresses() ([]cardano.Address, error) {
 }
 
 // EnterpriseAddresses returns all enterprise addresses.
-func (w *Wallet) EnterpriseAddresses() ([]cardano.Address, error) {
-	addresses := make([]cardano.Address, len(w.addrKeys))
+func (w *Wallet) EnterpriseAddresses() ([]cardano.ShelleyAddress, error) {
+	addresses := make([]cardano.ShelleyAddress, len(w.addrKeys))
 	for i, key := range w.addrKeys {
 		payment, err := cardano.NewKeyCredential(key.PubKey())
 		if err != nil {
@@ -188,15 +188,15 @@ func (w *Wallet) EnterpriseAddresses() ([]cardano.Address, error) {
 
 // Deprecated: replaced with EnterpriseAddresses() due to vague naming
 // Addresses returns all wallet's addresss.
-func (w *Wallet) Addresses() ([]cardano.Address, error) {
+func (w *Wallet) Addresses() ([]cardano.ShelleyAddress, error) {
 	return w.EnterpriseAddresses()
 }
 
 // StakeAddress returns wallet's stake address
-func (w *Wallet) StakeAddress() (cardano.Address, error) {
+func (w *Wallet) StakeAddress() (cardano.ShelleyAddress, error) {
 	stake, err := cardano.NewKeyCredential(w.stakeKey.PubKey())
 	if err != nil {
-		return cardano.Address{}, err
+		return cardano.ShelleyAddress{}, err
 	}
 	return cardano.NewStakeAddress(w.network, stake)
 }

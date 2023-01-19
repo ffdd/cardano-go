@@ -159,7 +159,7 @@ func TestSimpleTx(t *testing.T) {
 				t.Fatal(err)
 			}
 			txIn := NewTxInput(txHashIn, 0, NewValue(tc.input))
-			txOut := NewTxOutput(addrOut, NewValue(tc.output))
+			txOut := NewTxOutput(&addrOut, NewValue(tc.output))
 
 			txBuilder := NewTxBuilder(alonzoProtocol)
 
@@ -227,7 +227,7 @@ func TestMintingAssets(t *testing.T) {
 		NewTxInput(txHash, 0, NewValue(inputAmount)),
 	)
 	txBuilder.AddOutputs(
-		NewTxOutput(addr, NewValueWithAssets(transferAmount, newAsset.MultiAsset())),
+		NewTxOutput(&addr, NewValueWithAssets(transferAmount, newAsset.MultiAsset())),
 	)
 
 	txBuilder.Mint(newAsset)
@@ -235,7 +235,7 @@ func TestMintingAssets(t *testing.T) {
 	txBuilder.SetTTL(100000)
 	txBuilder.Sign(paymentKey.PrvKey())
 	txBuilder.Sign(policyKey.PrvKey())
-	txBuilder.AddChangeIfNeeded(addr)
+	txBuilder.AddChangeIfNeeded(&addr)
 	tx, err := txBuilder.Build()
 	if err != nil {
 		t.Fatal(err)
@@ -354,7 +354,7 @@ func TestSendingMultiAssets(t *testing.T) {
 				NewTxInput(txHash, 0, tc.txInputAmount),
 			)
 			txBuilder.AddOutputs(
-				NewTxOutput(addr, tc.txOutputAmount),
+				NewTxOutput(&addr, tc.txOutputAmount),
 			)
 			txBuilder.SetTTL(100000)
 			txBuilder.Sign(paymentKey.PrvKey())
@@ -367,7 +367,7 @@ func TestSendingMultiAssets(t *testing.T) {
 				},
 			})
 
-			txBuilder.AddChangeIfNeeded(addr)
+			txBuilder.AddChangeIfNeeded(&addr)
 			tx, err := txBuilder.Build()
 			if err != nil {
 				if tc.wantErr {
@@ -438,7 +438,7 @@ func TestAddChangeIfNeeded(t *testing.T) {
 				},
 				outputs: []*TxOutput{
 					{
-						Address: receiver,
+						Address: &receiver,
 						Amount:  NewValue(200000),
 					},
 				},
@@ -458,7 +458,7 @@ func TestAddChangeIfNeeded(t *testing.T) {
 				},
 				outputs: []*TxOutput{
 					{
-						Address: receiver,
+						Address: &receiver,
 						Amount:  NewValue(txBuilder.MinCoinsForTxOut(emptyTxOut)),
 					},
 				},
@@ -477,7 +477,7 @@ func TestAddChangeIfNeeded(t *testing.T) {
 				},
 				outputs: []*TxOutput{
 					{
-						Address: receiver,
+						Address: &receiver,
 						Amount:  NewValue(txBuilder.MinCoinsForTxOut(emptyTxOut)),
 					},
 				},
@@ -496,7 +496,7 @@ func TestAddChangeIfNeeded(t *testing.T) {
 				},
 				outputs: []*TxOutput{
 					{
-						Address: receiver,
+						Address: &receiver,
 						Amount:  NewValue(txBuilder.MinCoinsForTxOut(emptyTxOut)),
 					},
 				},
@@ -515,7 +515,7 @@ func TestAddChangeIfNeeded(t *testing.T) {
 				},
 				outputs: []*TxOutput{
 					{
-						Address: receiver,
+						Address: &receiver,
 						Amount:  NewValue(txBuilder.MinCoinsForTxOut(emptyTxOut)),
 					},
 				},
@@ -535,7 +535,7 @@ func TestAddChangeIfNeeded(t *testing.T) {
 				},
 				outputs: []*TxOutput{
 					{
-						Address: receiver,
+						Address: &receiver,
 						Amount:  NewValue(txBuilder.MinCoinsForTxOut(emptyTxOut)),
 					},
 				},
@@ -560,7 +560,7 @@ func TestAddChangeIfNeeded(t *testing.T) {
 			txBuilder.AddOutputs(tc.fields.outputs...)
 			txBuilder.SetTTL(tc.fields.ttl)
 			txBuilder.Sign(key.PrvKey())
-			txBuilder.AddChangeIfNeeded(changeAddr)
+			txBuilder.AddChangeIfNeeded(&changeAddr)
 			tx, err := txBuilder.Build()
 			if err != nil {
 				if tc.wantErr {
