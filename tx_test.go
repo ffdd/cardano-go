@@ -71,7 +71,6 @@ func TestTxEncoding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	txBytes, err := wantTx.MarshalCBOR()
 	if err != nil {
 		t.Fatal(err)

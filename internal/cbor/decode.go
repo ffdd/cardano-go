@@ -728,8 +728,6 @@ func (d *decoder) parseToValue(v reflect.Value, tInfo *typeInfo) error { //nolin
 			}
 			v.Set(reflect.ValueOf(NewByteString(rb.Bytes())))
 			return nil
-		} else {
-			return fillByteString(t, b, v)
 		}
 		return fillByteString(t, b, v)
 	case cborTypeTextString:
