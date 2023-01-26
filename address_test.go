@@ -1,6 +1,7 @@
 package cardano
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/echovl/cardano-go/crypto"
@@ -159,6 +160,28 @@ func TestNewAddress(t *testing.T) {
 	}
 	if got, want := stake1.Bech32(), stakeAddrType2; got != want {
 		t.Errorf("invalid stake address\ngot: %s\nwant: %s", got, want)
+	}
+}
+
+func TestStakeAddressToBytes(t *testing.T) {
+	addrBech32 := "stake_test1urxr8x34l8s0uquu75gvwcw5m55sgrzga9jhlkk8a8qpm9q9p2w0s"
+
+	_, addrBytes, err := bech32.DecodeToBase256(addrBech32)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	addr, err := NewAddressFromBytes(addrBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	addrHex, err := addr.MarshalCBOR()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := hex.EncodeToString(addrHex), "581de0cc339a35f9e0fe039cf510c761d4dd29040c48e9657fdac7e9c01d94"; got != want {
+		t.Errorf("invalid stake address hex\ngot: %s\nwant: %s", got, want)
 	}
 }
 

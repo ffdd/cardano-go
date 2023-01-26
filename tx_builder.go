@@ -43,9 +43,19 @@ func (tb *TxBuilder) SetTTL(ttl uint64) {
 	tb.tx.Body.TTL = NewUint64(ttl)
 }
 
-// SetFee sets the transactions's fee.
+// SetFee sets the transaction's fee.
 func (tb *TxBuilder) SetFee(fee Coin) {
 	tb.tx.Body.Fee = fee
+}
+
+// SetWithdrawals sets the stake reward withdrawals.
+func (tb *TxBuilder) SetWithdrawals(address Address, amount Coin) error {
+	addressHex, err := address.MarshalCBOR()
+	if err != nil {
+		return err
+	}
+	tb.tx.Body.Withdrawals = map[[29]byte]Coin{*(*[29]byte)(addressHex[2:]): amount}
+	return nil
 }
 
 // AddAuxiliaryData adds auxiliary data to the transaction.
