@@ -382,7 +382,7 @@ type OperationalCertificate struct {
 }
 
 func NewOperationalCertificate(kesVKey []byte, counter uint, kesPeriod uint, coldSKey crypto.PrvKey) (OperationalCertificate, error) {
-	signPayload := hex.EncodeToString(kesVKey) + fmt.Sprintf("%0*d", 16, counter) + fmt.Sprintf("%0*d", 16, kesPeriod)
+	signPayload := hex.EncodeToString(kesVKey) + fmt.Sprintf("%0*x", 16, counter) + fmt.Sprintf("%0*x", 16, kesPeriod)
 	signPayloadBytes, err := hex.DecodeString(signPayload)
 	if err != nil {
 		return OperationalCertificate{}, err
