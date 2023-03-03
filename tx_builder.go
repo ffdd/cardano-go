@@ -89,6 +89,9 @@ func (tb *TxBuilder) calculateAmounts() (*Value, *Value) {
 	for _, in := range tb.tx.Body.Inputs {
 		input = input.Add(in.Amount)
 	}
+	for _, withdrawCoin := range tb.tx.Body.Withdrawals {
+		input = input.Add(NewValue(withdrawCoin))
+	}
 	for _, out := range tb.tx.Body.Outputs {
 		output = output.Add(out.Amount)
 	}
