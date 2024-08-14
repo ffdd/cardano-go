@@ -50,7 +50,7 @@ func TestTxEncoding(t *testing.T) {
 		NewTxInput(txHash, 0, NewValue(inputAmount)),
 	)
 	txBuilder.AddOutputs(
-		NewTxOutput(addr, NewValueWithAssets(transferAmount, newAsset.MultiAsset())),
+		NewTxOutput(&addr, NewValueWithAssets(transferAmount, newAsset.MultiAsset())),
 	)
 
 	txBuilder.Mint(newAsset)
@@ -58,7 +58,7 @@ func TestTxEncoding(t *testing.T) {
 	txBuilder.SetTTL(100000)
 	txBuilder.Sign(paymentKey.PrvKey())
 	txBuilder.Sign(policyKey.PrvKey())
-	txBuilder.AddChangeIfNeeded(addr)
+	txBuilder.AddChangeIfNeeded(&addr)
 	txBuilder.AddAuxiliaryData(&AuxiliaryData{
 		Metadata: Metadata{
 			0: map[interface{}]interface{}{
@@ -73,7 +73,6 @@ func TestTxEncoding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	txBytes, err := wantTx.MarshalCBOR()
 	if err != nil {
 		t.Fatal(err)

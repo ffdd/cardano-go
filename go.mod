@@ -4,7 +4,9 @@ go 1.18
 
 require (
 	filippo.io/edwards25519 v1.0.0
+	github.com/Bitrue-exchange/libada-go v0.0.1-rc
 	github.com/blockfrost/blockfrost-go v0.1.0
+	github.com/cosmos/btcutil v1.0.5
 	github.com/dgraph-io/badger/v3 v3.2103.2
 	github.com/echovl/ed25519 v0.2.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
@@ -23,6 +25,7 @@ require (
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fxamacker/cbor/v2 v2.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -33,6 +36,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/islishude/base58 v1.0.1 // indirect
 	github.com/klauspost/compress v1.12.3 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
