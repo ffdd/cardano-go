@@ -7,6 +7,7 @@ import (
 	"github.com/echovl/cardano-go/crypto"
 )
 
+// https://github.com/IntersectMBO/cardano-ledger/blob/adb63e0c899109d89b5e99cc0d5b6a2e97fa3d2d/eras/conway/impl/testlib/Test/Cardano/Ledger/Conway/CDDL.hs#L281-L375
 type CertificateType uint
 
 const (
@@ -17,6 +18,29 @@ const (
 	PoolRetirement
 	GenesisKeyDelegation
 	MoveInstantaneousRewards
+	// conway
+	Registration
+	Deregistration
+	VoteDelegation
+	StakeVoteDelegation
+	StakeRegistrationDelegation
+	VoteRegistrationDelegation
+	StakeVoteRegistrationDelegation
+	AuthCommiteeHot
+	ResignCommiteeCold
+	RegistrationDrep
+	DeregistrationDrep
+	UpdateDrep
+)
+
+// https://github.com/IntersectMBO/cardano-ledger/blob/adb63e0c899109d89b5e99cc0d5b6a2e97fa3d2d/eras/conway/impl/testlib/Test/Cardano/Ledger/Conway/CDDL.hs#L384-L390
+type Drep uint
+
+const (
+	AddressKeyHash Drep = iota
+	ScriptHash
+	AlwaysAbstain
+	NoConfidence
 )
 
 type stakeRegistration struct {
@@ -67,6 +91,13 @@ type genesisKeyDelegation struct {
 	VrfKeyHash          Hash32
 }
 
+type voteDelegation struct {
+	_               struct{} `cbor:",toarray"`
+	Type            CertificateType
+	StakeCredential StakeCredential
+	Drep            []Drep
+}
+
 // Certificate is a Cardano certificate.
 type Certificate struct {
 	Type CertificateType
@@ -90,6 +121,9 @@ type Certificate struct {
 	// Genesis fields
 	GenesisHash         Hash28
 	GenesisDelegateHash Hash28
+
+	// Conway fields
+	Drep []Drep
 }
 
 // MarshalCBOR implements cbor.Marshaler.
@@ -137,6 +171,12 @@ func (c *Certificate) MarshalCBOR() ([]byte, error) {
 			GenesisHash:         c.GenesisHash,
 			GenesisDelegateHash: c.GenesisDelegateHash,
 			VrfKeyHash:          c.VrfKeyHash,
+		}
+	case VoteDelegation:
+		cert = voteDelegation{
+			Type:            c.Type,
+			StakeCredential: c.StakeCredential,
+			Drep:            c.Drep,
 		}
 	}
 
@@ -245,6 +285,14 @@ func (c *Certificate) UnmarshalCBOR(data []byte) error {
 		c.GenesisHash = cert.GenesisHash
 		c.GenesisDelegateHash = cert.GenesisDelegateHash
 		c.VrfKeyHash = cert.VrfKeyHash
+	case VoteDelegation:
+		cert := &voteDelegation{}
+		if err := cborDec.Unmarshal(data, cert); err != nil {
+			return err
+		}
+		c.Type = VoteDelegation
+		c.StakeCredential = cert.StakeCredential
+		c.Drep = cert.Drep
 	}
 
 	return nil
