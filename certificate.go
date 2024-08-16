@@ -7,6 +7,7 @@ import (
 	"github.com/echovl/cardano-go/crypto"
 )
 
+// https://github.com/IntersectMBO/cardano-ledger/blob/adb63e0c899109d89b5e99cc0d5b6a2e97fa3d2d/eras/conway/impl/testlib/Test/Cardano/Ledger/Conway/CDDL.hs#L281-L375
 type CertificateType uint
 
 const (
@@ -17,6 +18,29 @@ const (
 	PoolRetirement
 	GenesisKeyDelegation
 	MoveInstantaneousRewards
+	// conway
+	Registration
+	Deregistration
+	VoteDelegation
+	StakeVoteDelegation
+	StakeRegistrationDelegation
+	VoteRegistrationDelegation
+	StakeVoteRegistrationDelegation
+	AuthCommiteeHot
+	ResignCommiteeCold
+	RegistrationDrep
+	DeregistrationDrep
+	UpdateDrep
+)
+
+// https://github.com/IntersectMBO/cardano-ledger/blob/adb63e0c899109d89b5e99cc0d5b6a2e97fa3d2d/eras/conway/impl/testlib/Test/Cardano/Ledger/Conway/CDDL.hs#L384-L390
+type Drep uint
+
+const (
+	AddressKeyHash Drep = iota
+	ScriptHash
+	AlwaysAbstain
+	NoConfidence
 )
 
 type stakeRegistration struct {
@@ -67,6 +91,13 @@ type genesisKeyDelegation struct {
 	VrfKeyHash          Hash32
 }
 
+type voteDelegation struct {
+	_               struct{} `cbor:",toarray"`
+	Type            CertificateType
+	StakeCredential StakeCredential
+	Drep            []Drep
+}
+
 // Certificate is a Cardano certificate.
 type Certificate struct {
 	Type CertificateType
@@ -90,6 +121,9 @@ type Certificate struct {
 	// Genesis fields
 	GenesisHash         Hash28
 	GenesisDelegateHash Hash28
+
+	// Conway fields
+	Drep []Drep
 }
 
 // MarshalCBOR implements cbor.Marshaler.
@@ -138,49 +172,15 @@ func (c *Certificate) MarshalCBOR() ([]byte, error) {
 			GenesisDelegateHash: c.GenesisDelegateHash,
 			VrfKeyHash:          c.VrfKeyHash,
 		}
+	case VoteDelegation:
+		cert = voteDelegation{
+			Type:            c.Type,
+			StakeCredential: c.StakeCredential,
+			Drep:            c.Drep,
+		}
 	}
 
 	return cborEnc.Marshal(cert)
-}
-
-// NewStakeRegistrationCertificate creates a Stake Registration Certificate.
-func NewStakeRegistrationCertificate(stakeKey crypto.PubKey) (Certificate, error) {
-	cred, err := NewKeyCredential(stakeKey)
-	if err != nil {
-		return Certificate{}, err
-	}
-
-	return Certificate{
-		Type:            StakeRegistration,
-		StakeCredential: cred,
-	}, nil
-}
-
-// NewStakeDeregistrationCertificate creates a Stake Deregistration Certificate.
-func NewStakeDeregistrationCertificate(stakeKey crypto.PubKey) (Certificate, error) {
-	cred, err := NewKeyCredential(stakeKey)
-	if err != nil {
-		return Certificate{}, err
-	}
-
-	return Certificate{
-		Type:            StakeDeregistration,
-		StakeCredential: cred,
-	}, nil
-}
-
-// NewStakeDelegationCertificate creates a Stake Delegation Certificate.
-func NewStakeDelegationCertificate(stakeKey crypto.PubKey, poolKeyHash Hash28) (Certificate, error) {
-	cred, err := NewKeyCredential(stakeKey)
-	if err != nil {
-		return Certificate{}, err
-	}
-
-	return Certificate{
-		Type:            StakeDelegation,
-		StakeCredential: cred,
-		PoolKeyHash:     poolKeyHash,
-	}, nil
 }
 
 // UnmarshalCBOR implements cbor.Unmarshaler.
@@ -245,9 +245,71 @@ func (c *Certificate) UnmarshalCBOR(data []byte) error {
 		c.GenesisHash = cert.GenesisHash
 		c.GenesisDelegateHash = cert.GenesisDelegateHash
 		c.VrfKeyHash = cert.VrfKeyHash
+	case VoteDelegation:
+		cert := &voteDelegation{}
+		if err := cborDec.Unmarshal(data, cert); err != nil {
+			return err
+		}
+		c.Type = VoteDelegation
+		c.StakeCredential = cert.StakeCredential
+		c.Drep = cert.Drep
 	}
 
 	return nil
+}
+
+// NewStakeRegistrationCertificate creates a Stake Registration Certificate.
+func NewStakeRegistrationCertificate(stakeKey crypto.PubKey) (Certificate, error) {
+	cred, err := NewKeyCredential(stakeKey)
+	if err != nil {
+		return Certificate{}, err
+	}
+
+	return Certificate{
+		Type:            StakeRegistration,
+		StakeCredential: cred,
+	}, nil
+}
+
+// NewStakeDeregistrationCertificate creates a Stake Deregistration Certificate.
+func NewStakeDeregistrationCertificate(stakeKey crypto.PubKey) (Certificate, error) {
+	cred, err := NewKeyCredential(stakeKey)
+	if err != nil {
+		return Certificate{}, err
+	}
+
+	return Certificate{
+		Type:            StakeDeregistration,
+		StakeCredential: cred,
+	}, nil
+}
+
+// NewStakeDelegationCertificate creates a Stake Delegation Certificate.
+func NewStakeDelegationCertificate(stakeKey crypto.PubKey, poolKeyHash Hash28) (Certificate, error) {
+	cred, err := NewKeyCredential(stakeKey)
+	if err != nil {
+		return Certificate{}, err
+	}
+
+	return Certificate{
+		Type:            StakeDelegation,
+		StakeCredential: cred,
+		PoolKeyHash:     poolKeyHash,
+	}, nil
+}
+
+// NewVoteDelegationCertificate creates a Vote Delegation Certificate.
+func NewVoteDelegationCertificate(stakeKey crypto.PubKey) (Certificate, error) {
+	cred, err := NewKeyCredential(stakeKey)
+	if err != nil {
+		return Certificate{}, err
+	}
+
+	return Certificate{
+		Type:            VoteDelegation,
+		StakeCredential: cred,
+		Drep:            []Drep{AlwaysAbstain},
+	}, nil
 }
 
 // PoolMetadata represents the metadata used for a pool registration.

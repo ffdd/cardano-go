@@ -7,6 +7,34 @@ import (
 	"testing"
 )
 
+func TestCertificateForVoteDelegation(t *testing.T) {
+	stakeVKey := "8dee10107c64fae1ddec93235907cfeaff18e92da4af727444236ce118bc5a77"
+	stakePubkeyBytes, err := hex.DecodeString(stakeVKey)
+	assert.NoError(t, err)
+
+	stakePubkey := crypto.PubKey(stakePubkeyBytes)
+	stakeCredential, err := NewKeyCredential(stakePubkey)
+
+	cert := Certificate{
+		Type:            VoteDelegation,
+		StakeCredential: stakeCredential,
+		Drep:            []Drep{AlwaysAbstain},
+	}
+
+	certCborHexBytes, err := cert.MarshalCBOR()
+	assert.NoError(t, err)
+
+	certCborHex := hex.EncodeToString(certCborHexBytes)
+	assert.Equal(t, "83098200581ca1a917ae2b441be3bcf6ced0e04510c09703b19652a31e9e0205bd3a8102", certCborHex)
+
+	// reverse
+	newCert := Certificate{}
+	errCert := newCert.UnmarshalCBOR(certCborHexBytes)
+	assert.NoError(t, errCert)
+
+	assert.Equal(t, cert, newCert)
+}
+
 func TestOperationalCertificate(t *testing.T) {
 	kesVKey := "69ffc95dc8f843d79033f86eb81e61785517e56e8e9b3854b43c5fc567440023"
 	kesBytes, err := hex.DecodeString(kesVKey)
