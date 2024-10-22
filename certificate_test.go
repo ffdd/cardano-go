@@ -35,6 +35,38 @@ func TestCertificateForVoteDelegation(t *testing.T) {
 	assert.Equal(t, cert, newCert)
 }
 
+func TestCertificateForStakeVoteDelegation(t *testing.T) {
+	stakeVKey := "8dee10107c64fae1ddec93235907cfeaff18e92da4af727444236ce118bc5a77"
+	stakePubkeyBytes, err := hex.DecodeString(stakeVKey)
+	assert.NoError(t, err)
+
+	stakePubkey := crypto.PubKey(stakePubkeyBytes)
+	stakeCredential, err := NewKeyCredential(stakePubkey)
+
+	cert := Certificate{
+		Type:            StakeVoteDelegation,
+		StakeCredential: stakeCredential,
+		PoolKeyHash: PoolKeyHash{
+			0x20, 0xdf, 0x86, 0x45, 0xab, 0xdd, 0xf0, 0x94, 0x3, 0xba, 0x26, 0x56, 0xcd, 0xa7,
+			0xda, 0x2c, 0xd1, 0x63, 0x97, 0x3a, 0x5e, 0x43, 0x9c, 0x6e, 0x43, 0xdc, 0xbe, 0xa9,
+		},
+		Drep: []Drep{AlwaysAbstain},
+	}
+
+	certCborHexBytes, err := cert.MarshalCBOR()
+	assert.NoError(t, err)
+
+	certCborHex := hex.EncodeToString(certCborHexBytes)
+	assert.Equal(t, "840a8200581ca1a917ae2b441be3bcf6ced0e04510c09703b19652a31e9e0205bd3a581c20df8645abddf09403ba2656cda7da2cd163973a5e439c6e43dcbea98102", certCborHex)
+
+	// reverse
+	newCert := Certificate{}
+	errCert := newCert.UnmarshalCBOR(certCborHexBytes)
+	assert.NoError(t, errCert)
+
+	assert.Equal(t, cert, newCert)
+}
+
 func TestOperationalCertificate(t *testing.T) {
 	kesVKey := "69ffc95dc8f843d79033f86eb81e61785517e56e8e9b3854b43c5fc567440023"
 	kesBytes, err := hex.DecodeString(kesVKey)
