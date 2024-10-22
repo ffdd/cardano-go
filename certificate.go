@@ -98,6 +98,14 @@ type voteDelegation struct {
 	Drep            []Drep
 }
 
+type stakeVoteDelegation struct {
+	_               struct{} `cbor:",toarray"`
+	Type            CertificateType
+	StakeCredential StakeCredential
+	PoolKeyHash     PoolKeyHash
+	Drep            []Drep
+}
+
 // Certificate is a Cardano certificate.
 type Certificate struct {
 	Type CertificateType
@@ -178,6 +186,13 @@ func (c *Certificate) MarshalCBOR() ([]byte, error) {
 			StakeCredential: c.StakeCredential,
 			Drep:            c.Drep,
 		}
+	case StakeVoteDelegation:
+		cert = stakeVoteDelegation{
+			Type:            c.Type,
+			StakeCredential: c.StakeCredential,
+			PoolKeyHash:     c.PoolKeyHash,
+			Drep:            c.Drep,
+		}
 	}
 
 	return cborEnc.Marshal(cert)
@@ -253,6 +268,15 @@ func (c *Certificate) UnmarshalCBOR(data []byte) error {
 		c.Type = VoteDelegation
 		c.StakeCredential = cert.StakeCredential
 		c.Drep = cert.Drep
+	case StakeVoteDelegation:
+		cert := &stakeVoteDelegation{}
+		if err := cborDec.Unmarshal(data, cert); err != nil {
+			return err
+		}
+		c.Type = StakeVoteDelegation
+		c.StakeCredential = cert.StakeCredential
+		c.PoolKeyHash = cert.PoolKeyHash
+		c.Drep = cert.Drep
 	}
 
 	return nil
@@ -308,6 +332,21 @@ func NewVoteDelegationCertificate(stakeKey crypto.PubKey) (Certificate, error) {
 	return Certificate{
 		Type:            VoteDelegation,
 		StakeCredential: cred,
+		Drep:            []Drep{AlwaysAbstain},
+	}, nil
+}
+
+// NewStakeVoteDelegationCertificate creates a Stake Vote Delegation Certificate.
+func NewStakeVoteDelegationCertificate(stakeKey crypto.PubKey, poolKeyHash Hash28) (Certificate, error) {
+	cred, err := NewKeyCredential(stakeKey)
+	if err != nil {
+		return Certificate{}, err
+	}
+
+	return Certificate{
+		Type:            StakeVoteDelegation,
+		StakeCredential: cred,
+		PoolKeyHash:     poolKeyHash,
 		Drep:            []Drep{AlwaysAbstain},
 	}, nil
 }
