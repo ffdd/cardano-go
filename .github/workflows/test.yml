@@ -1,17 +1,52 @@
 name: test
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: runner-ubuntu-small-ondemand-amd64
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.23
 
       - name: Test
-        run: go test -v ./...
+        run: make testcov
+
+      - name: upload coverage result
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage.out
+          path: coverage.out
+          retention-days: 1
+          overwrite: true
+
+  sonarqube:
+    needs: [test]
+    name: "sonarqube"
+    runs-on: runner-ubuntu-micro-ondemand-amd64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download Coverage Result
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage.out
+          path: ./
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: ./
