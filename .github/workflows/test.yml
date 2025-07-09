@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    runs-on: runner-ubuntu-small-ondemand-amd64
+    runs-on: runner-ubuntu2404-medium-ondemand-amd64
     steps:
       - uses: actions/checkout@v3
 
@@ -33,7 +33,7 @@ jobs:
   sonarqube:
     needs: [test]
     name: "sonarqube"
-    runs-on: runner-ubuntu-micro-ondemand-amd64
+    runs-on: runner-ubuntu2404-micro-ondemand-amd64
     steps:
       - uses: actions/checkout@v4
         with:
